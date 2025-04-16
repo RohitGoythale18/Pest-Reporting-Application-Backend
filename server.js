@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const userRouter = require('./routes/User');
+const adminRouter = require('./routes/Admin');
 const reportRouter = require('./routes/Report');
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/pest-report', userRouter);
+app.use('/pest-report/admin', adminRouter);
 app.use('/pest-report', reportRouter);
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
