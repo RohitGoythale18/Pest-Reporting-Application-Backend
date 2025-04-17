@@ -46,22 +46,28 @@ const loginAdmin = async (req, res, next) => {
             return res.status(400).json({ message: 'Admin not registered' });
         }
 
+        console.log("Entered password:", password);
+        console.log("Saved hash:", adminFound.password);
         const isPasswordValid = await bcrypt.compare(password, adminFound.password);
-
+        console.log("Password match:", isPasswordValid);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid login credentials...!" });
         }
 
         const token = jwt.sign(
-            { id: adminFound._id, email: adminFound.email },
-            process.env.JWT_ADMIN_SECRET,
+            {
+                id: adminFound._id,
+                email: adminFound.email,
+                loginTime: Date.now(), // optional, for uniqueness
+            },
+            process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
 
-        res.status(200).json({
+        return res.status(200).json({
             status: "success",
             message: 'Login successful',
-            token,
+            token, // token is outside the admin object
             admin: {
                 id: adminFound._id,
                 name: adminFound.name,
