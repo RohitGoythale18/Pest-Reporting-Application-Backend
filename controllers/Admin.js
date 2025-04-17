@@ -8,7 +8,7 @@ const registerAdmin = async (req, res) => {
     console.log(req.body);
 
     try {
-        const existingAdmin = await Admin.findOne({email});
+        const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
             return res.status(400).json({ message: 'An admin already exists. You cannot create another one.' });
         }
@@ -38,19 +38,24 @@ const registerAdmin = async (req, res) => {
 const loginAdmin = async (req, res) => {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+        return next(appErr('All fields are required...!'));
+    }
+
     try {
-        const admin = await Admin.findOne();
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found. Please register first.' });
+        const adminFound = await Admin.findOne({ email });
+        if (!adminFound) {
+            return res.status(400).json({ message: 'Admin not registered' });
         }
 
-        const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+        const isPasswordValid = await bcrypt.compare(password, adminFound.password);
+
+        if (!isPasswordValid) {
+            return next(appErr("Invalid login credentials...!"));
         }
 
         const token = jwt.sign(
-            { id: admin._id, email: admin.email },
+            { id: adminFound._id, email: adminFound.email },
             process.env.JWT_SECRET,
             { expiresIn: "1h" },
         );
@@ -58,8 +63,8 @@ const loginAdmin = async (req, res) => {
         res.status(200).json({
             message: 'Login successful',
             admin: {
-                name: admin.name,
-                email: admin.email,
+                name: adminFound.name,
+                email: adminFound.email,
                 token: token,
             },
         });
