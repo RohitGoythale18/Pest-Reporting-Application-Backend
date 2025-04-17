@@ -8,10 +8,18 @@ const registerUser = async (req, res) => {
         const { username, email, phone, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = new User({ username, email, phone, password: hashedPassword });
+        const user = new User({
+            username,
+            email,
+            phone,
+            password: hashedPassword
+        });
+
         await user.save();
 
-        res.status(201).json({ message: 'User registered' });
+        res.status(201).json({
+            message: 'User registered',
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

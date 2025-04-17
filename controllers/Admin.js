@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 const registerAdmin = async (req, res) => {
     const { name, email, phone, password } = req.body;
 
-    console.log(req.body);
-
     try {
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
@@ -35,11 +33,11 @@ const registerAdmin = async (req, res) => {
     }
 };
 
-const loginAdmin = async (req, res) => {
+const loginAdmin = async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return next(appErr('All fields are required...!'));
+        return res.status(400).json({ message: 'All fields are required...!' });
     }
 
     try {
@@ -51,25 +49,29 @@ const loginAdmin = async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, adminFound.password);
 
         if (!isPasswordValid) {
-            return next(appErr("Invalid login credentials...!"));
+            return res.status(401).json({ message: "Invalid login credentials...!" });
         }
 
         const token = jwt.sign(
             { id: adminFound._id, email: adminFound.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" },
+            process.env.JWT_ADMIN_SECRET,
+            { expiresIn: "1h" }
         );
 
         res.status(200).json({
+            status: "success",
             message: 'Login successful',
+            token,
             admin: {
+                id: adminFound._id,
                 name: adminFound.name,
                 email: adminFound.email,
-                token: token,
+                phone: adminFound.phone,
+                role: adminFound.role,
             },
         });
     } catch (error) {
-        console.error(error);
+        console.error("Login error:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
