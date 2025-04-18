@@ -12,6 +12,7 @@ const registerUser = async (req, res) => {
             username,
             email,
             phone,
+            role: 'user',
             password: hashedPassword
         });
 
@@ -45,10 +46,19 @@ const loginUser = async (req, res) => {
             return next(appErr("Invalid login credentials...!"));
         }
 
+        const userSecret = process.env.JWT_SECRET;
+        if (!userSecret) {
+            throw new Error("JWT_SECRET not defined in .env");
+        }
+
         const token = jwt.sign(
-            { id: userFound._id, email: userFound.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" },
+            {
+                id: userFound._id,
+                email: userFound.email,
+                role: userFound.role,
+            },
+            userSecret,
+            { expiresIn: "1h" }
         );
 
         res.status(200).json({
